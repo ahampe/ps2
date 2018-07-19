@@ -16,7 +16,7 @@ import java.util.Set;
  * 
  * <p>PS2 instructions: you MUST use the provided rep.
  */
-public class ConcreteVerticesGraph implements Graph<String> {
+public class ConcreteVerticesGraph<L> implements Graph<L> {
     
     private final List<Vertex> vertices = new ArrayList<>();
     
@@ -34,18 +34,18 @@ public class ConcreteVerticesGraph implements Graph<String> {
     public ConcreteVerticesGraph() {};
     
     private void checkRep() {
-        Set<String> s = new HashSet<String>();
-        for (Vertex v : vertices) {
-            String val = v.getValue();
+        Set<L> s = new HashSet<L>();
+        for (Vertex<L> v : vertices) {
+            L val = v.getValue();
             assert !v.contains(val); // no self-loops
             assert !s.contains(val); // no repeat vertices
             s.add(val);
         }
     }
     
-    @Override public boolean add(String vertex) {
+    @Override public boolean add(L vertex) {
         boolean notFound = true;
-        for (Vertex v : vertices) {
+        for (Vertex<L> v : vertices) {
             if (v.getValue().equals(vertex)) {
                 notFound = false;
                 break;
@@ -53,23 +53,23 @@ public class ConcreteVerticesGraph implements Graph<String> {
         }
         
         if (notFound) {
-            vertices.add(new Vertex(vertex));
+            vertices.add(new Vertex<L>(vertex));
         }
         
         checkRep();
         return notFound;
     }
     
-    @Override public int set(String source, String target, int weight) {
+    @Override public int set(L source, L target, int weight) {
 
         if (source.equals(target)) { 
             return 0; // prevent self-loops
         }
         
-        Vertex v = null;
-        Vertex u = null;
-        for (Vertex o : vertices) {
-            String s = o.getValue();
+        Vertex<L> v = null;
+        Vertex<L> u = null;
+        for (Vertex<L> o : vertices) {
+            L s = o.getValue();
             if (s.equals(source)) {
                 v = o;
             }
@@ -80,11 +80,11 @@ public class ConcreteVerticesGraph implements Graph<String> {
         
         if (weight != 0) {
             if (v == null) {
-                v = new Vertex(source);
+                v = new Vertex<L>(source);
                 vertices.add(v);
             }
             if (u == null) {
-                u = new Vertex(target);
+                u = new Vertex<L>(target);
                 vertices.add(u);
             }  
         }
@@ -93,14 +93,14 @@ public class ConcreteVerticesGraph implements Graph<String> {
         return v.update(target, weight);
     }
     
-    @Override public boolean remove(String vertex) {
-        for (Vertex v: vertices) {
+    @Override public boolean remove(L vertex) {
+        for (Vertex<L> v: vertices) {
             v.unlink(vertex);
         }
         
         boolean removed = false;
         for (Iterator<Vertex> iter = vertices.iterator(); iter.hasNext();) {
-            Vertex v = iter.next();
+            Vertex<L> v = iter.next();
             if (v.getValue().equals(vertex)) {
                 iter.remove();
                 removed = true;
@@ -111,18 +111,18 @@ public class ConcreteVerticesGraph implements Graph<String> {
         return removed;
     }
     
-    @Override public Set<String> vertices() {
-        Set<String> vs = new HashSet<String>();
-        for (Vertex v : vertices) {
+    @Override public Set<L> vertices() {
+        Set<L> vs = new HashSet<L>();
+        for (Vertex<L> v : vertices) {
             vs.add(v.getValue());
         }
         return vs;
     }
     
-    @Override public Map<String, Integer> sources(String target) {
-        Map<String, Integer> srcs = new HashMap<String, Integer>();
+    @Override public Map<L, Integer> sources(L target) {
+        Map<L, Integer> srcs = new HashMap<L, Integer>();
         
-        for (Vertex v : vertices) {
+        for (Vertex<L> v : vertices) {
             if (v.contains(target)) {
                 srcs.put(v.getValue(), v.getWeight(target));
             }
@@ -131,10 +131,10 @@ public class ConcreteVerticesGraph implements Graph<String> {
         return srcs;
     }
     
-    @Override public Map<String, Integer> targets(String source) {
-        Map<String, Integer> tgts = new HashMap<String, Integer>();
+    @Override public Map<L, Integer> targets(L source) {
+        Map<L, Integer> tgts = new HashMap<L, Integer>();
         
-        for (Vertex v: vertices) {
+        for (Vertex<L> v: vertices) {
             if (v.getValue().equals(source)) {
                 tgts = v.getPoints();
                 break;
@@ -147,11 +147,11 @@ public class ConcreteVerticesGraph implements Graph<String> {
     @Override
     public String toString() {
         StringBuilder s = new StringBuilder("vertices:\n");
-        for (Vertex v : vertices) {
-            s.append(v.getValue() + "\n");
+        for (Vertex<L> v : vertices) {
+            s.append(v.getValue().toString() + "\n");
         }
         s.append("\nedges:\n");
-        for (Vertex v: vertices) {
+        for (Vertex<L> v: vertices) {
             String e = v.toString();
             if (e.length() > 0) {
                 s.append(e);
@@ -170,10 +170,10 @@ public class ConcreteVerticesGraph implements Graph<String> {
  * <p>PS2 instructions: the specification and implementation of this class is
  * up to you.
  */
-class Vertex {
+class Vertex<L> {
 
-    private final String value;
-    private Map<String, Integer> points;
+    private final L value;
+    private Map<L, Integer> points;
     
     // Abstraction function:
     //   A vertex with a string value that maintains its own map to other string vertex values.
@@ -184,9 +184,9 @@ class Vertex {
     //   Value is immutable and access-private.
     //   Points are returned as a new map to prevent mutation.
     
-    public Vertex(String val) {
+    public Vertex(L val) {
         value = val;
-        points = new HashMap<String, Integer>();
+        points = new HashMap<L, Integer>();
     }
     
     private void checkRep() {
@@ -196,30 +196,30 @@ class Vertex {
         }
     }
     
-    public String getValue() {
+    public L getValue() {
         return value;
     }
     
-    public Map<String, Integer> getPoints() {
-        return new HashMap<String, Integer>(points);
+    public Map<L, Integer> getPoints() {
+        return new HashMap<L, Integer>(points);
     }
     
-    public boolean contains(String target) {
+    public boolean contains(L target) {
         return points.containsKey(target);
     }
     
-    public Integer getWeight(String target) {
+    public Integer getWeight(L target) {
         return points.get(target);
     }
     
-    public void unlink(String target) {
+    public void unlink(L target) {
         points.remove(target);
     }
     
-    public int update(String target, int newWeight) {
+    public int update(L target, int newWeight) {
         int oldWeight = 0;
         
-        for (String p : points.keySet()) {
+        for (L p : points.keySet()) {
             if (p.equals(target)) {
                 oldWeight = points.get(p);
                 break;
@@ -232,15 +232,14 @@ class Vertex {
             unlink(target);
         }
         
-        
         checkRep();
         return oldWeight;
     }
     
     @Override public String toString() {
         StringBuilder s = new StringBuilder();
-        for (Map.Entry<String, Integer> p : points.entrySet()) {
-            s.append(String.format("%s -> %s (%d)\n", value, p.getKey(), p.getValue()));
+        for (Map.Entry<L, Integer> p : points.entrySet()) {
+            s.append(String.format("%s -> %s (%d)\n", value, p.getKey().toString(), p.getValue()));
         }
         return s.toString();
     }
