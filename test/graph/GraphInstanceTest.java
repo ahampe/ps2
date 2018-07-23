@@ -109,14 +109,19 @@ public abstract class GraphInstanceTest {
                 targets1, two.targets("First"));
         }
     
-    // attempt self-loop
     @Test
-    public void testFailures() {
-        Graph<String> fail = emptyInstance();
-        assertEquals(fail.set("First", "First", 0), 0);
-        assertEquals(fail.set("First", "First", 0), 0);
-        assertEquals("expected graph to be empty",
-                Collections.emptySet(), fail.vertices());
+    public void testSelfLoop() {
+        Graph<String> sloop = emptyInstance();
+        assertEquals(sloop.set("First", "First", 1), 0);
+        assertEquals("expected graph to have 1 vertex",
+                new HashSet<String>(Arrays.asList("First")), sloop.vertices());
+        
+        Map<String, Integer> g2 = new HashMap<String, Integer>();
+        g2.put("First", 1);
+        assertEquals("expected sources to have edge", 
+                g2, sloop.sources("First"));
+        assertEquals("expected targets to have edge", 
+                g2, sloop.targets("First"));
     }
     
     // set: 0 for existing edge, 0 for non-existing edge

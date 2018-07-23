@@ -4,7 +4,6 @@
 package graph;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,11 +25,10 @@ public class ConcreteEdgesGraph<L> implements Graph<L> {
     //   Represents a graph with a set of nodes (vertices) and 
     //      a list of weighted directed edges connecting the nodes (edges).
     // Representation invariant:
-    //   Vertices are of the same type and are distinct Strings.
+    //   Vertices are of the same immutable type.
     //   There is at most one edge pointing from U to V (i.e., the graph is simple)
     // Safety from rep exposure:
     //   All fields are private.
-    //   Vertices are Strings and are thus immutable.
     
     public ConcreteEdgesGraph() {};
     
@@ -60,11 +58,6 @@ public class ConcreteEdgesGraph<L> implements Graph<L> {
     
     @Override public int set(L source, L target, int weight) {
         int oldWeight = 0;
-        
-        // protect from self-loops
-        if (source.equals(target)) {
-            return oldWeight;
-        }
         
         // remove edge if it already exists (changing weights requires this as edges are immutable)
         Edge<L> toRemove = null;
@@ -169,10 +162,9 @@ class Edge<L> {
     private final int weight;
     
     // Abstraction function:
-    //   Represents a directed weighted connection between unique nodes.
+    //   Represents a directed weighted connection between nodes.
     // Representation invariant:
-    //   Source and target must be unique Strings.
-    //   No self-loops.
+    //   Source and target must be immutable.
     //   Weights must be nonzero.
     // Safety from rep exposure:
     //   All private final fields.
@@ -186,7 +178,6 @@ class Edge<L> {
     
     private void checkRep() {
         assert weight != 0;
-        assert !source.equals(target);
     }
     
     L getSource() {

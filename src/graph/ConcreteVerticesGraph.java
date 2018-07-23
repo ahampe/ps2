@@ -18,18 +18,16 @@ import java.util.Set;
  */
 public class ConcreteVerticesGraph<L> implements Graph<L> {
     
-    private final List<Vertex> vertices = new ArrayList<>();
+    private final List<Vertex<L>> vertices = new ArrayList<>();
     
     // Abstraction function:
     //   Represents a graph with nodes (Vertices) that maintain 
     //       their own list of outgoing edges.
     // Representation invariant:
-    //   Vertices are of the same type and are distinct Strings.
-    //   Edges cannot form self-loops.
+    //   Vertices are of the same immutable type.
     //   There is at most one edge pointing from U to V (i.e., the graph is simple)
     // Safety from rep exposure:
     //   All fields are private.
-    //   Vertices are Strings and are thus immutable.
     
     public ConcreteVerticesGraph() {};
     
@@ -37,7 +35,6 @@ public class ConcreteVerticesGraph<L> implements Graph<L> {
         Set<L> s = new HashSet<L>();
         for (Vertex<L> v : vertices) {
             L val = v.getValue();
-            assert !v.contains(val); // no self-loops
             assert !s.contains(val); // no repeat vertices
             s.add(val);
         }
@@ -61,11 +58,6 @@ public class ConcreteVerticesGraph<L> implements Graph<L> {
     }
     
     @Override public int set(L source, L target, int weight) {
-
-        if (source.equals(target)) { 
-            return 0; // prevent self-loops
-        }
-        
         Vertex<L> v = null;
         Vertex<L> u = null;
         for (Vertex<L> o : vertices) {
@@ -83,7 +75,7 @@ public class ConcreteVerticesGraph<L> implements Graph<L> {
                 v = new Vertex<L>(source);
                 vertices.add(v);
             }
-            if (u == null) {
+            if (u == null && !source.equals(target)) {
                 u = new Vertex<L>(target);
                 vertices.add(u);
             }  
@@ -99,7 +91,7 @@ public class ConcreteVerticesGraph<L> implements Graph<L> {
         }
         
         boolean removed = false;
-        for (Iterator<Vertex> iter = vertices.iterator(); iter.hasNext();) {
+        for (Iterator<Vertex<L>> iter = vertices.iterator(); iter.hasNext();) {
             Vertex<L> v = iter.next();
             if (v.getValue().equals(vertex)) {
                 iter.remove();
@@ -176,9 +168,8 @@ class Vertex<L> {
     private Map<L, Integer> points;
     
     // Abstraction function:
-    //   A vertex with a string value that maintains its own map to other string vertex values.
+    //   A vertex with a string value that maintains its own map to other vertex values.
     // Representation invariant:
-    //   Points cannot contain value (no self-loops)
     //   Weights cannot be zero.
     // Safety from rep exposure:
     //   Value is immutable and access-private.
@@ -190,7 +181,6 @@ class Vertex<L> {
     }
     
     private void checkRep() {
-        assert !points.containsKey(value);
         for (Integer v : points.values()) {
             assert !v.equals(new Integer(0));
         }

@@ -3,8 +3,6 @@
  */
 package graph;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 
 /**
@@ -21,7 +19,7 @@ public class ConcreteEdgesGraphTest extends GraphInstanceTest {
      * Provide a ConcreteEdgesGraph for tests in GraphInstanceTest.
      */
     @Override public Graph<String> emptyInstance() {
-        return new ConcreteEdgesGraph();
+        return new ConcreteEdgesGraph<String>();
     }
     
     /*
