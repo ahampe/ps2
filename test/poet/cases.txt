@@ -1,0 +1,3 @@
+some words that are all lowercase
+Some Words That Are All Titlecase
+SOME WORDS THAT ARE ALL UPPERCASE

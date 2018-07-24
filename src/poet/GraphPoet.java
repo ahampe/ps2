@@ -3,8 +3,15 @@
  */
 package poet;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import graph.Graph;
 
@@ -54,12 +61,20 @@ public class GraphPoet {
     
     private final Graph<String> graph = Graph.empty();
     
+    // fields used only in checkRep:
+    private final Set<String> initVertices;
+    private final Map<String, Integer> initEdges = new HashMap<String, Integer>();
+    
     // Abstraction function:
-    //   TODO
+    //   A graph that takes a corpus (String) as input, generates a weighted digraph
+    //   with weights being number of times the words are adjacent to each other,
+    //   and can create new poems by exploring the graph and inserting bridges between
+    //   words with a two-edge path between them.
     // Representation invariant:
-    //   TODO
+    //   Graph is created in the constructor and is not modified elsewhere.
+    //   Graph nodes are all lowercase words.
     // Safety from rep exposure:
-    //   TODO
+    //   graph is private and final.
     
     /**
      * Create a new poet with the graph from corpus (as described above).
@@ -68,10 +83,43 @@ public class GraphPoet {
      * @throws IOException if the corpus file cannot be found or read
      */
     public GraphPoet(File corpus) throws IOException {
-        throw new RuntimeException("not implemented");
+        BufferedReader br = new BufferedReader(new FileReader(corpus));
+        
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] words = line.split("\\s");
+            String lastWord = null;
+            
+            for (String word : words) {
+                if (word.length() > 0) {
+                    String lowWord = word.toLowerCase();
+                    if (lastWord != null) {
+                        Integer prevWght = graph.targets(lastWord).get(lowWord);
+                        if (prevWght == null) prevWght = 0;
+                        graph.set(lastWord, lowWord, prevWght + 1);
+                    }
+                    lastWord = lowWord;
+                }
+            }
+        }
+        
+        initVertices = graph.vertices();
+        for (String v : initVertices) {
+            initEdges.putAll(graph.targets(v));
+        }
+        br.close();
     }
     
-    // TODO checkRep
+    private void checkRep() {
+        Set<String> vertices = graph.vertices();
+        Map<String, Integer> edges = new HashMap<String, Integer>();
+        assert(graph.vertices().equals(initVertices));
+        for (String vertex : vertices) {
+            assert(vertex.equals(vertex.toLowerCase()));
+            edges.putAll(graph.targets(vertex));
+        }
+        assert(edges.equals(initEdges));
+    }
     
     /**
      * Generate a poem.
@@ -80,9 +128,54 @@ public class GraphPoet {
      * @return poem (as described above)
      */
     public String poem(String input) {
-        throw new RuntimeException("not implemented");
+        List<String> output = new ArrayList<String>();
+        
+        String[] words = input.split("\\s");
+        String lastWord = "";
+        String bridge = "";
+        
+        for (String word : words) {
+            if (word.length() > 0) {
+                if (!lastWord.equals("")) {
+                    bridge = findBridge(lastWord, word); 
+                    if (bridge.length() > 0) output.add(bridge);
+                }
+                output.add(word);
+                lastWord = word;
+            }
+        }
+        
+        checkRep();
+        return String.join(" ", output);
     }
     
-    // TODO toString()
+    private String findBridge(String source, String target) {
+        String tgtLower = target.toLowerCase();
+        String bridge = "";
+        Integer maxWght = Integer.MIN_VALUE;
+        // find all outgoing edges from source
+        Map<String, Integer> intermeds = graph.targets(source.toLowerCase());
+        
+        for (Map.Entry<String, Integer> e1 : intermeds.entrySet()) {
+            String intermed = e1.getKey();
+            Integer weight1 = e1.getValue();
+            // find length 2 paths from source
+            Map<String, Integer> secondaries = graph.targets(intermed);
+            for (Map.Entry<String, Integer> e2 : secondaries.entrySet()) {
+                Integer weight2 = e2.getValue();
+                if (e2.getKey().equals(tgtLower) && weight1 + weight2 > maxWght) {
+                    maxWght = weight1 + weight2;
+                    bridge = intermed;
+                }
+            }
+        }
+        
+        return bridge;
+    }
+    
+    @Override
+    public String toString() {
+        return graph.toString();
+    }
     
 }
